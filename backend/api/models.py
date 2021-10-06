@@ -23,24 +23,25 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    title = models.CharField(max_length=200)
+    name = models.CharField(max_length=100)
     measurement_unit = models.CharField(max_length=20)
 
     def __str__(self):
-        return self.title
+        return self.name
 
 
 class Recipe(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                related_name='recipes')
     name = models.CharField(max_length=200)
-    image = models.ImageField(upload_to='recipe/')
+    image = models.ImageField(upload_to='images/')
     text = models.TextField()
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient')
     tags = models.ManyToManyField(Tag)
     cooking_time = models.PositiveIntegerField(default=1)
+    pub_date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -57,12 +58,26 @@ class RecipeIngredient(models.Model):
                                    related_name='recipes')
     amount = models.PositiveIntegerField(default=1)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_shopping_cart',
+            )]
+
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                              related_name='user_shopping_cart')
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
                                related_name="recipe_shopping_cart")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_shopping_cart',
+            )]
 
 
 class Follow(models.Model):
@@ -77,7 +92,7 @@ class Follow(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'author'],
-                name='unique_follow'
+                name='unique_follow',
             )]
 
 
