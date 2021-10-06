@@ -1,3 +1,12 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 
-# Register your models here.
+from .forms import MyUserChangeForm
+from .models import User
+
+
+class MyUserAdmin(UserAdmin):
+    form = MyUserChangeForm
+
+
+admin.site.register(User, MyUserAdmin)
