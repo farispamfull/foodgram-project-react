@@ -62,7 +62,7 @@ class RecipeIngredient(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
-                name='unique_shopping_cart',
+                name='unique_recipe_ingredient',
             )]
 
 
