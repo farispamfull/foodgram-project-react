@@ -1,16 +1,16 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-
+from colorfield.fields import ColorField
 User = get_user_model()
 
 
 class Tag(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, max_length=100, db_index=True)
-    color = models.CharField(max_length=15)
+    color = models.CharField()
 
     def __str__(self):
-        return self.slug
+        return self.name
 
     class Meta:
         verbose_name = 'Тег'
@@ -27,7 +27,7 @@ class Ingredient(models.Model):
     measurement_unit = models.CharField(max_length=20)
 
     def __str__(self):
-        return self.name
+        return f'{self.name}/{self.measurement_unit}'
 
 
 class Recipe(models.Model):
@@ -39,7 +39,7 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient')
-    tags = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(Tag, related_name='recipes')
     cooking_time = models.PositiveIntegerField(default=1)
     pub_date = models.DateTimeField(auto_now=True)
 
@@ -55,7 +55,7 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
                                related_name='recipe_ingredients')
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
-                                   related_name='recipes')
+                                   related_name='recipe_ingredients')
     amount = models.PositiveIntegerField(default=1)
 
     class Meta:
