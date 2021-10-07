@@ -60,6 +60,8 @@ class RecipeIngredient(models.Model):
     amount = models.PositiveIntegerField(default=1)
 
     class Meta:
+        verbose_name = 'Ингредиенты для рецепта'
+        verbose_name_plural = 'Ингредиенты для рецепта'
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
@@ -74,6 +76,8 @@ class ShoppingCart(models.Model):
                                related_name="recipe_shopping_cart")
 
     class Meta:
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Список покупок'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
@@ -94,7 +98,12 @@ class Follow(models.Model):
             models.UniqueConstraint(
                 fields=['user', 'author'],
                 name='unique_follow',
-            )]
+            ),
+            models.CheckConstraint(
+                name="%(app_label)s_%(class)s_prevent_self_follow",
+                check=~models.Q(user=models.F("author"))
+            ),
+        ]
 
 
 class Favorite(models.Model):
@@ -102,7 +111,7 @@ class Favorite(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='favorite_users',
-        verbose_name='Любимый автор'
+        verbose_name='юзер'
     )
 
     recipe = models.ForeignKey(
