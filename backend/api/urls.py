@@ -3,11 +3,14 @@ from rest_framework.routers import DefaultRouter
 
 from authentication.views import user_logout, LoginView
 from users.views import UserViewSet
+from .views import RecipesViewSet
 
 app_name = 'api'
 
 router_v1 = DefaultRouter()
+router_v1.register('recipes', RecipesViewSet, basename='recipe')
 router_v1.register('users', UserViewSet, basename='user')
+
 auth_patterns = [
     path('token/logout/',
          user_logout,

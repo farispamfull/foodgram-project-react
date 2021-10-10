@@ -1,6 +1,8 @@
 from colorfield.fields import ColorField
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models
+
 User = get_user_model()
 
 
@@ -40,8 +42,27 @@ class Recipe(models.Model):
         Ingredient,
         through='RecipeIngredient')
     tags = models.ManyToManyField(Tag, related_name='recipes')
-    cooking_time = models.PositiveIntegerField(default=1)
+    cooking_time = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)])
     pub_date = models.DateTimeField(auto_now=True)
+
+    def is_favorited(self, user):
+        if not user.is_authenticated:
+            return False
+
+        if Favorite.objects.select_related('user').filter(
+                user=user, recipe=self).exists():
+            return True
+
+        return False
+
+    def is_in_shopping_cart(self, user):
+        if not user.is_authenticated:
+            return False
+        if ShoppingCart.objects.select_related('user').filter(
+                user=user, recipe=self).exists():
+            return True
+        return False
 
     def __str__(self):
         return self.name
@@ -53,9 +74,9 @@ class Recipe(models.Model):
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
-                               related_name='recipe_ingredients')
+                               related_name='ingredients_to_recipe')
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
-                                   related_name='recipe_ingredients')
+                                   related_name='recipes_to_ingredient')
     amount = models.PositiveIntegerField(default=1)
 
     class Meta:

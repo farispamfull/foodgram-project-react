@@ -6,11 +6,19 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+
+        return obj.is_subscribes(user)
+
     class Meta:
-        fields = ('first_name', 'last_name',
-                  'username', 'email', 'password')
+        fields = ('id', 'first_name', 'last_name',
+                  'username', 'email', 'password', 'is_subscribed')
         extra_kwargs = {'password': {'write_only': True,
-                                     'validators': [validate_password]}}
+                                     'validators': [validate_password]},
+                        'id': {'read_only': True}}
         model = User
 
     def create(self, validated_data):
@@ -22,7 +30,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ChangePasswordSerializer(serializers.Serializer):
-
     new_password = serializers.CharField(
         validators=[validate_password],
         required=True)

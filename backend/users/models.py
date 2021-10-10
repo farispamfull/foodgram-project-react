@@ -1,5 +1,7 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+from api import models as api_models
 
 
 class User(AbstractUser):
@@ -15,6 +17,14 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    def is_subscribes(self, user):
+        if not user.is_authenticated:
+            return False
+        if api_models.Follow.objects.select_related('author').filter(user=user,
+                                                                     author=self).exists():
+            return True
+        return False
 
     class Meta:
         ordering = ['username']
