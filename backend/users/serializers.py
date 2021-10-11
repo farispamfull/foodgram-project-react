@@ -2,6 +2,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
+
+
+
 User = get_user_model()
 
 
@@ -10,6 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
+        print(user)
 
         return obj.is_subscribes(user)
 
@@ -29,6 +33,9 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
+
+
+
 class ChangePasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(
         validators=[validate_password],
@@ -36,12 +43,9 @@ class ChangePasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField(required=True)
 
     def validate(self, data):
-        if data['new_password'] != data['current_password']:
-            raise serializers.ValidationError(
-                {"new_password": "Password fields didn't match."})
         current_password = data['current_password']
         user = self.context['request'].user
         if not user.check_password(current_password):
             raise serializers.ValidationError(
-                {"current_password": "Wrong password"})
+                {"current_password": "Неверный пароль"})
         return data

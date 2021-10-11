@@ -26,5 +26,8 @@ class User(AbstractUser):
             return True
         return False
 
+    def recipes_limit(self, limit):
+        return self.recipes.all()[:int(limit)]
+
     class Meta:
         ordering = ['username']

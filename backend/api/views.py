@@ -39,12 +39,12 @@ class IngredientsViewSet(ReadOnlyModelViewSet):
 class FavoriteView(APIView):
     """
     Учитывая, что мы ничего не принимаем кроме query params и не возвращаем,
-    я посчитал наличие favorite сериалайзера избыточым
+    я посчитал наличие favorite сериалайзера избыточным
     """
 
     def get(self, request, recipe_id):
-        user = request.user
         recipe = get_object_or_404(Recipe, id=recipe_id)
+        user = request.user
 
         obj, create = Favorite.objects.get_or_create(user=user, recipe=recipe)
         if create:

@@ -1,9 +1,12 @@
+from django.contrib.auth import get_user_model
 from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from users.serializers import UserSerializer
+from backend.users.serializers import UserSerializer
 from .models import Recipe, RecipeIngredient, Ingredient, Tag, Favorite
+
+User = get_user_model()
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -29,7 +32,6 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
-
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -61,6 +63,25 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
+class FilteredListSerializer(serializers.ListSerializer):
+    """
+    Фильтрация вложенной стукрутры - рецепты - при запросе к подпискам юзера
+    с параметром recipes_limit
+
+    Один из вариантов. Отказался от него, все же мы просто делаем лимит, а не
+    прям фильтруем по параметрам вложеность, а потом устанавлиаем лимит.
+    """
+
+    def to_representation(self, data):
+        if not self.context.get('view').basename == 'user':
+            return super(FilteredListSerializer, self).to_representation(data)
+        search = self.context['request'].GET.get('recipes_limit')
+        if search:
+            data = data[:search]
+
+        return super(FilteredListSerializer, self).to_representation(data)
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField(
         method_name='get_favorited', read_only=True)
@@ -68,7 +89,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         method_name='get_in_shopping_cart', read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     ingredients = RecipeIngredientSerializer(source='ingredients_to_recipe',
-                                             many=True, read_only=True)
+                                             many=True)
 
     author = UserSerializer(read_only=True)
 
@@ -85,6 +106,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return obj.is_in_shopping_cart(user)
 
     class Meta:
+        # list_serializer_class = FilteredListSerializer
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
                   'is_in_shopping_cart', 'name', 'image', 'text',
@@ -112,28 +134,28 @@ class RecipePostSerializer(ModelSerializer):
         self.create_ingredients(ingredients, recipe)
         return recipe
 
-    @staticmethod
-    def setup_eager_loading(queryset):
-        queryset = queryset.select_related('creator')
+    # @staticmethod
+    # def setup_eager_loading(queryset):
+    #     queryset = queryset.select_related('creator')
 
     @staticmethod
     def create_ingredients(ingredients, recipe):
         """
         создаем записи в промежуточной таблице ингредиентов для рецепта
         """
+
         recipe.ingredients.clear()
         for ingredient in ingredients:
-            RecipeIngredient.objects.create(
+            (RecipeIngredient.objects.create(
                 recipe=recipe, amount=ingredient.get('amount'),
-                ingredient=ingredient.get('ingredient'))
+                ingredient=ingredient.get('ingredient')))
 
     def to_representation(self, instance):
         """
         Переопределяем для того, чтобы вернуть не плоские представления
-        tags и ingredients, как это нужно по ТЗ :'(
-        Так, как будто мы делаем get запрос на рецепт
+        tags и ingredients, как это нужно по ТЗ + дополнительные поля
+        Так, как будто мы делаем get запрос на только что созданный рецепт
         """
-
         request_context = self.context['request']
         return RecipeSerializer(instance,
                                 context={'request': request_context}).data
@@ -155,3 +177,34 @@ class RecipePostSerializer(ModelSerializer):
         fields = (
             'ingredients', 'author', 'tags', 'image', 'name', 'text',
             'cooking_time')
+
+
+class SubRecipesSerializer(ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class SubSerializer(ModelSerializer):
+    recipes = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+
+        return obj.is_subscribes(user)
+
+    def get_recipes(self, obj):
+        limit = self.context['request'].GET.get('recipes_limit')
+        if limit:
+            recipes = obj.recipes_limit(limit)
+        else:
+            recipes = obj.recipes.all()
+            print(recipes)
+        return SubRecipesSerializer(recipes, many=True).data
+
+    class Meta:
+        model = User
+        fields = (
+            'email', 'id', 'username', 'first_name', 'last_name',
+            'is_subscribed','recipes')
