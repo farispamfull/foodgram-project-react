@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'colorfield',
     'silk'
 
-
 ]
 
 MIDDLEWARE = [
@@ -107,8 +106,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',  # <-- And here
+        'rest_framework.authentication.TokenAuthentication',
+
     ],
+
 }
 AUTHENTICATION_BACKENDS = ['authentication.backends.AuthenticationBackend',
                            'django.contrib.auth.backends.ModelBackend',

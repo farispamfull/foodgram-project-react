@@ -13,7 +13,6 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        print(user)
 
         return obj.is_subscribes(user)
 

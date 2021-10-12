@@ -50,8 +50,8 @@ class Recipe(models.Model):
         if not user.is_authenticated:
             return False
 
-        if Favorite.objects.select_related('user').filter(
-                user=user, recipe=self).exists():
+        if self.favorite_users.filter(
+                user=user).exists():
             return True
 
         return False
@@ -59,17 +59,17 @@ class Recipe(models.Model):
     def is_in_shopping_cart(self, user):
         if not user.is_authenticated:
             return False
-        if ShoppingCart.objects.select_related('user').filter(
-                user=user, recipe=self).exists():
+        if self.recipe_shopping_cart.filter(user=user).exists():
             return True
         return False
 
     def __str__(self):
         return self.name
 
-    ordering = ["-pub_date"]
-    verbose_name = 'Рецепты'
-    verbose_name_plural = 'Рецепты'
+    class Meta:
+        ordering = ('-pub_date',)
+        verbose_name = 'Рецепты'
+        verbose_name_plural = 'Рецепты'
 
 
 class RecipeIngredient(models.Model):
@@ -91,7 +91,7 @@ class RecipeIngredient(models.Model):
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE,
-                             related_name='user_shopping_cart')
+                             related_name='shopping_cart')
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
                                related_name="recipe_shopping_cart")
 

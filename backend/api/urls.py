@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from authentication.views import user_logout, LoginView
 from users.views import UserViewSet,SubscriptionsView
 from .views import (RecipesViewSet, TagsViewSet, FavoriteView,
-                    IngredientsViewSet)
+                    IngredientsViewSet,ShoppingView)
 
 app_name = 'api'
 
@@ -22,6 +22,7 @@ auth_patterns = [
          name='login_user'), ]
 
 urlpatterns = [
+    path('recipes/<int:recipe_id>/shopping_cart/',ShoppingView.as_view()),
     path('users/<int:user_id>/subscriptions/',SubscriptionsView.as_view()),
     path('recipes/<int:recipe_id>/favorite/', FavoriteView.as_view()),
     path('auth/', include(auth_patterns)),
