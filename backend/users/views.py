@@ -7,18 +7,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.models import Follow
+from api.paginators import StandardResultsSetPagination
 from api.serializers import SubSerializer
 from .models import User
 from .serializers import (UserSerializer, ChangePasswordSerializer,
                           )
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    lookup_field = 'username'
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
-
-    def get_queryset(self):
-        return User.objects.all()
+    pagination_class = StandardResultsSetPagination
 
     def get_serializer_class(self):
         if self.action == 'set_password':
@@ -47,12 +45,14 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
-        users = User.objects.filter(following__user=request.user)
+        pre_users = User.objects.filter(following__user=request.user)
+        users = self.paginate_queryset(pre_users)
         serializer = self.get_serializer(users, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class SubscriptionsView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id):
         user = request.user

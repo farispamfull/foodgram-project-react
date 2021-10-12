@@ -12,8 +12,6 @@ User = get_user_model()
 class FavoriteSerializer(serializers.ModelSerializer):
     recipe = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
 
-    # def validate(self, attrs):
-
     class Meta:
         model = Favorite
         fields = ('user', 'recipe')
@@ -115,8 +113,6 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 class RecipePostSerializer(ModelSerializer):
     ingredients = RecipeIngredientPostSerializer(many=True, required=True)
-    # tags=TagSerializer(many=True)
-    # tags=TagSerializer(many=True,source='id')
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all())
@@ -126,7 +122,6 @@ class RecipePostSerializer(ModelSerializer):
         """
         обрабатываем поля many to many
         """
-        print(validated_data)
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
@@ -185,9 +180,13 @@ class SubRecipesSerializer(ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class SubSerializer(ModelSerializer):
-    recipes = serializers.SerializerMethodField()
+class SubSerializer(serializers.ModelSerializer):
+    recipes = serializers.SerializerMethodField(read_only=True)
     is_subscribed = serializers.SerializerMethodField(read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
+
+    def get_recipes_count(self, obj):
+        return obj.recipes_count
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
@@ -206,4 +205,4 @@ class SubSerializer(ModelSerializer):
         model = User
         fields = (
             'email', 'id', 'username', 'first_name', 'last_name',
-            'is_subscribed', 'recipes')
+            'is_subscribed', 'recipes', 'recipes_count')

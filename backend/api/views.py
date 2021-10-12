@@ -10,18 +10,20 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
-from django_filters import filters
+
 from api.utils import Util
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientFilter
 from .models import Recipe, Tag, Favorite, Ingredient, ShoppingCart
+from .paginators import StandardResultsSetPagination
+from .permissions import AuthorOrIsAuthenticatedPermission
 from .serializers import (RecipeSerializer, RecipePostSerializer,
                           TagSerializer, IngredientSerializer,
                           SubRecipesSerializer)
-from .paginators import StandardResultsSetPagination
+
 
 class RecipesViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AuthorOrIsAuthenticatedPermission]
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
     pagination_class = StandardResultsSetPagination
@@ -72,6 +74,8 @@ class TagsViewSet(ReadOnlyModelViewSet):
 class IngredientsViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = IngredientFilter
 
 
 class FavoriteView(APIView):
@@ -79,33 +83,38 @@ class FavoriteView(APIView):
     Учитывая, что мы ничего не принимаем кроме query params и не возвращаем,
     я посчитал наличие favorite сериалайзера избыточным
     """
+    permission_classes = [IsAuthenticated]
     serializer_class = SubRecipesSerializer
 
+    def get_object(self, id):
+        return get_object_or_404(Recipe, id=id)
+
     def get(self, request, recipe_id):
-        recipe = get_object_or_404(Recipe, id=recipe_id)
+        recipe = self.get_object(id=recipe_id)
         user = request.user
 
         obj, create = Favorite.objects.get_or_create(user=user, recipe=recipe)
         if create:
             serializer = self.serializer_class(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        error = {'error': 'Рецепт уже есть в избранном'}
+        error = {'errors': 'Рецепт уже есть в избранном'}
         return Response(data=error, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, recipe_id):
-        recipe = get_object_or_404(Recipe, pk=recipe_id)
+        recipe = self.get_object(id=recipe_id)
         user = request.user
         favorite_recipe = user.favorite_recipes.filter(recipe=recipe)
         if favorite_recipe:
             favorite_recipe.first().delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        error = {'error': 'Такого рецепта нет в избранном'}
+        error = {'errors': 'Такого рецепта нет в избранном'}
         return Response(data=error, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ShoppingView(APIView):
     serializer_class = SubRecipesSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_object(self, id):
         return get_object_or_404(Recipe, id=id)
