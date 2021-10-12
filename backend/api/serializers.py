@@ -200,11 +200,10 @@ class SubSerializer(ModelSerializer):
             recipes = obj.recipes_limit(limit)
         else:
             recipes = obj.recipes.all()
-            print(recipes)
         return SubRecipesSerializer(recipes, many=True).data
 
     class Meta:
         model = User
         fields = (
             'email', 'id', 'username', 'first_name', 'last_name',
-            'is_subscribed','recipes')
+            'is_subscribed', 'recipes')

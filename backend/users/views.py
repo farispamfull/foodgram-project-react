@@ -52,7 +52,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class FavoriteView(APIView):
+class SubscriptionsView(APIView):
 
     def get(self, request, user_id):
         user = request.user
@@ -60,7 +60,7 @@ class FavoriteView(APIView):
 
         obj, create = Follow.objects.get_or_create(user=user, author=author)
         if create:
-            serializer = SubSerializer(author)
+            serializer = SubSerializer(author, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         errors = {'error': 'Вы уже подписаны на этого автора'}
         return Response(data=errors, status=status.HTTP_400_BAD_REQUEST)
@@ -68,10 +68,9 @@ class FavoriteView(APIView):
     def delete(self, request, user_id):
         author = get_object_or_404(User, pk=user_id)
         user = request.user
-        favorite_recipe = user.favorite_recipes.filter(recipe=recipe)
-        if favorite_recipe:
-            favorite_recipe.first().delete()
-            Response(status=status.HTTP_204_NO_CONTENT)
-
+        follow_obj = user.follower.filter(author=author)
+        if follow_obj:
+            follow_obj.first().delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         error = {'errors': 'Вы не подписаны на этого автора'}
         return Response(data=error, status=status.HTTP_400_BAD_REQUEST)
