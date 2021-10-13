@@ -3,7 +3,7 @@ from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from backend.users.serializers import UserSerializer
+from users.serializers import UserSerializer
 from .models import Recipe, RecipeIngredient, Ingredient, Tag, Favorite
 
 User = get_user_model()

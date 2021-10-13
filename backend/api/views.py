@@ -21,7 +21,7 @@ from .serializers import (RecipeSerializer, RecipePostSerializer,
                           SubRecipesSerializer)
 
 
-class RecipesViewSet(viewsets.ModelViewSet):
+class RecipesViewSet(ReadOnlyModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = [AuthorOrIsAuthenticatedPermission]
     filter_backends = [DjangoFilterBackend]
