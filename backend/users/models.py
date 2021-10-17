@@ -21,8 +21,9 @@ class User(AbstractUser):
     def is_subscribes(self, user):
         if not user.is_authenticated:
             return False
-        if api_models.Follow.objects.select_related('author').filter(user=user,
-                                                                     author=self).exists():
+        if api_models.Follow.objects.select_related('author').filter(
+                user=user, author=self
+        ).exists():
             return True
         return False
 

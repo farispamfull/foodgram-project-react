@@ -22,7 +22,6 @@ class RecipeFilter(filters.FilterSet):
     tags = MultipleFilter(field_name='tags__slug',
                           lookup_expr='iexact')
 
-
     def filter_is_in_shopping_cart(self, queryset, name, value):
         if value is True:
             user = self.request.user

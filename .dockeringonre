@@ -1,0 +1,12 @@
+nginx
+venv
+.*
+*.py[cod]
+*.sqlite3
+Dockerfile
+docker-compose.yaml
+.github
+pytest*
+tests
+README.*
+media

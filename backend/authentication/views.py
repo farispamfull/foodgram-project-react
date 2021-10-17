@@ -1,4 +1,5 @@
-from django.contrib.auth import logout as django_logout, get_user_model,user_logged_out
+from django.contrib.auth import get_user_model, user_logged_out
+from django.contrib.auth import logout as django_logout
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
