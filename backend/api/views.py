@@ -58,7 +58,7 @@ class RecipesViewSet(ModelViewSet):
 
         text = Util.make_shopping_text(ingredients)
         response = HttpResponse(
-            text, content_type='application/text charset=utf-8'
+            text, content_type="text/plain"
         )
         response[
             'Content-Disposition'] = 'attachment; filename="ShoppingList.txt"'
