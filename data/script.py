@@ -15,5 +15,6 @@ with open("ingredients.json", "r", encoding='utf-8') as read_file:
         pre_result.append(pre_item)
         i += 1
 
-with open("../backend/ingredients_data.json", "w", encoding='utf-8') as write_file:
+with open("../backend/ingredients_data.json", "w",
+          encoding='utf-8') as write_file:
     json.dump(pre_result, write_file, indent=4, ensure_ascii=False)
