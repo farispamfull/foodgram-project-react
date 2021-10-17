@@ -1,10 +1,11 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from api.models import Follow
 from api.paginators import StandardResultsSetPagination
@@ -14,7 +15,7 @@ from .serializers import (UserSerializer, ChangePasswordSerializer,
                           )
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(ReadOnlyModelViewSet, CreateModelMixin):
     queryset = User.objects.all()
     pagination_class = StandardResultsSetPagination
 
@@ -32,7 +33,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'],
+    @action(detail=False, methods=['post'],
             permission_classes=[IsAuthenticated])
     def set_password(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -62,7 +63,7 @@ class SubscriptionsView(APIView):
         if create:
             serializer = SubSerializer(author, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        errors = {'error': 'Вы уже подписаны на этого автора'}
+        errors = {'errors': 'Вы уже подписаны на этого автора'}
         return Response(data=errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, user_id):

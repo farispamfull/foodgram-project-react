@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
@@ -118,6 +119,15 @@ class RecipePostSerializer(ModelSerializer):
         queryset=Tag.objects.all())
     author = UserSerializer(read_only=True)
 
+    def validate_ingredients(self, value):
+        a = [i['ingredient'] for i in value]
+        if len(set(a)) == len(value):
+            return value
+        else:
+            raise serializers.ValidationError(
+                'проверьте, что ингредиенты не повторяются')
+
+    @transaction.atomic
     def create(self, validated_data):
         """
         обрабатываем поля many to many
@@ -129,10 +139,6 @@ class RecipePostSerializer(ModelSerializer):
         self.create_ingredients(ingredients, recipe)
         return recipe
 
-    # @staticmethod
-    # def setup_eager_loading(queryset):
-    #     queryset = queryset.select_related('creator')
-
     @staticmethod
     def create_ingredients(ingredients, recipe):
         """
@@ -140,10 +146,14 @@ class RecipePostSerializer(ModelSerializer):
         """
 
         recipe.ingredients.clear()
+        list_ingredients = []
         for ingredient in ingredients:
-            (RecipeIngredient.objects.create(
-                recipe=recipe, amount=ingredient.get('amount'),
-                ingredient=ingredient.get('ingredient')))
+            list_ingredients.append(
+                RecipeIngredient(
+                    recipe=recipe, amount=ingredient.get('amount'),
+                    ingredient=ingredient.get('ingredient'))
+            )
+        RecipeIngredient.objects.bulk_create(list_ingredients)
 
     def to_representation(self, instance):
         """
@@ -155,6 +165,7 @@ class RecipePostSerializer(ModelSerializer):
         return RecipeSerializer(instance,
                                 context={'request': request_context}).data
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         """
         При обновлении обработать нужно только записи в промежуточной таблице

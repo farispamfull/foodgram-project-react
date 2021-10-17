@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-
-
+from api.utils import Util
 
 User = get_user_model()
 
@@ -25,14 +25,14 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
     def create(self, validated_data):
-        password = validated_data.pop('password')
+        email = Util.normalize_email(validated_data['email'])
+        print(email)
+        validated_data['email'] = email
+        password = validated_data.get('password')
         user = User.objects.create(**validated_data)
         user.set_password(password)
         user.save()
         return user
-
-
-
 
 
 class ChangePasswordSerializer(serializers.Serializer):

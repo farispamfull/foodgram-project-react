@@ -13,6 +13,7 @@ router_v1.register('recipes', RecipesViewSet, basename='recipe')
 router_v1.register('users', UserViewSet, basename='user')
 router_v1.register('tags', TagsViewSet, basename='tag')
 router_v1.register('ingredients', IngredientsViewSet, basename='ingredient')
+
 auth_patterns = [
     path('token/logout/',
          user_logout,
@@ -23,7 +24,7 @@ auth_patterns = [
 
 urlpatterns = [
     path('recipes/<int:recipe_id>/shopping_cart/',ShoppingView.as_view()),
-    path('users/<int:user_id>/subscriptions/',SubscriptionsView.as_view()),
+    path('users/<int:user_id>/subscribe/',SubscriptionsView.as_view()),
     path('recipes/<int:recipe_id>/favorite/', FavoriteView.as_view()),
     path('auth/', include(auth_patterns)),
     path('', include(router_v1.urls)),

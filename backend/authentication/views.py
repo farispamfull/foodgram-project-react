@@ -1,11 +1,11 @@
-from django.contrib.auth import logout as django_logout, get_user_model
+from django.contrib.auth import logout as django_logout, get_user_model,user_logged_out
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
-from rest_framework.generics import GenericAPIView
-from rest_framework.response import Response
 from rest_framework.decorators import permission_classes
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .serializers import UserLoginSerializer
 
@@ -36,5 +36,8 @@ class LoginView(GenericAPIView):
 @permission_classes([IsAuthenticated])
 def user_logout(request):
     request.user.auth_token.delete()
+    user_logged_out.send(
+        sender=request.user.__class__, request=request, user=request.user
+    )
     django_logout(request)
-    return Response(status=status.HTTP_201_CREATED)
+    return Response(status=status.HTTP_204_NO_CONTENT)

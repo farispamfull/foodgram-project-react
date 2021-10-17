@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db import models
+from django.forms import CheckboxSelectMultiple
 
 from .models import Recipe, RecipeIngredient, Ingredient, Tag, Follow, \
     Favorite, ShoppingCart
@@ -32,6 +34,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'name', 'author', 'favorite', 'count_ingredients', 'pub_date'
     )
     search_fields = ('name', 'author', 'tags__name')
+    readonly_fields = ('favorite',)
     ordering = ['pub_date']
 
     # autocomplete_fields = ('ingredients',)
@@ -63,7 +66,6 @@ class FollowAdmin(admin.ModelAdmin):
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
     search_fields = ('user__username', 'recipe__name',)
-
 
 
 @admin.register(ShoppingCart)
