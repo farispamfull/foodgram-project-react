@@ -13,9 +13,8 @@ jobs:
         python-version: 3.8
 
     - name: Install dependencies
-      script: |
-        cd ./backend
       run: |
+        cd ./backend
         python -m pip install --upgrade pip
         pip install flake8 pep8-naming flake8-broken-line flake8-return flake8-isort
         pip install -r requirements.txt
