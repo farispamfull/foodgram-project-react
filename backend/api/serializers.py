@@ -105,7 +105,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         return obj.is_in_shopping_cart(user)
 
     class Meta:
-        # list_serializer_class = FilteredListSerializer
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
                   'is_in_shopping_cart', 'name', 'image', 'text',
