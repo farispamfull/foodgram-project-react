@@ -120,10 +120,10 @@ class RecipePostSerializer(ModelSerializer):
 
     def validate_ingredients(self, value):
         ingredients = [ingredient['ingredient'] for ingredient in value]
-        
+
         try:
             [int(amount['amount']) for amount in value]
-        except Exception as e:
+        except Exception:
             raise serializers.ValidationError(
                 'Проверьте, что количество в игредиентах это число')
 
@@ -132,9 +132,6 @@ class RecipePostSerializer(ModelSerializer):
         else:
             raise serializers.ValidationError(
                 'проверьте, что ингредиенты не повторяются')
-
-
-
 
     @transaction.atomic
     def create(self, validated_data):
