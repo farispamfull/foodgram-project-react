@@ -1,3 +1,6 @@
+from rest_framework import serializers
+
+
 class Util:
     @staticmethod
     def make_shopping_text(ingredients):
@@ -23,3 +26,16 @@ class Util:
         else:
             email = email_name.lower() + '@' + domain_part.lower()
         return email
+
+    @staticmethod
+    def natural(values):
+        try:
+            numbers = [int(number) for number in values]
+            if not all([True for i in numbers if i >= 1]):
+                raise serializers.ValidationError(
+                    'Проверьте, что в количестве ингредиентов '
+                    'указали число больше 0')
+
+        except Exception:
+            raise serializers.ValidationError(
+                'Проверьте, что в количестве ингредиентов указали число')

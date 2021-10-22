@@ -6,6 +6,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from users.serializers import UserSerializer
 from .models import Recipe, RecipeIngredient, Ingredient, Tag, Favorite
+from .utils import Util
 
 User = get_user_model()
 
@@ -48,6 +49,10 @@ class RecipeIngredientPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredient
         fields = ('id', 'ingredient', 'amount')
+        extra_kwargs = {
+
+            'amount': {'validators': []}
+        }
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -120,12 +125,8 @@ class RecipePostSerializer(ModelSerializer):
 
     def validate_ingredients(self, value):
         ingredients = [ingredient['ingredient'] for ingredient in value]
-
-        try:
-            [int(amount['amount']) for amount in value]
-        except Exception:
-            raise serializers.ValidationError(
-                'Проверьте, что количество в игредиентах это число')
+        values = (amount['amount'] for amount in value)
+        Util.natural(values)
 
         if len(set(ingredients)) == len(value):
             return value
