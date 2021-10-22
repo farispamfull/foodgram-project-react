@@ -119,12 +119,22 @@ class RecipePostSerializer(ModelSerializer):
     author = UserSerializer(read_only=True)
 
     def validate_ingredients(self, value):
-        a = [i['ingredient'] for i in value]
-        if len(set(a)) == len(value):
+        ingredients = [ingredient['ingredient'] for ingredient in value]
+        
+        try:
+            [int(amount['amount']) for amount in value]
+        except Exception as e:
+            raise serializers.ValidationError(
+                'Проверьте, что количество в игредиентах это число')
+
+        if len(set(ingredients)) == len(value):
             return value
         else:
             raise serializers.ValidationError(
                 'проверьте, что ингредиенты не повторяются')
+
+
+
 
     @transaction.atomic
     def create(self, validated_data):
@@ -179,6 +189,7 @@ class RecipePostSerializer(ModelSerializer):
 
     class Meta:
         model = Recipe
+
         fields = (
             'ingredients', 'author', 'tags', 'image', 'name', 'text',
             'cooking_time')
